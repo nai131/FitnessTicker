@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Welcome to Fitness Ticker!</title>
+    <script src="https://cdn.netpie.io/microgear.js"></script>
+
+<script>
+
+  const APPID = "TestConnectArduino";
+  const KEY = "xUyWuNl42Mt5v4P";
+  const SECRET = "liZmN50fwX5zW2QDa5dLiwS9w";
+
+  const ALIAS = "DigitalOUTPUT_HTML_web";     //  ชื่อตัวเอง
+  const thing1 = "NodeMCU1";                                   //  ชื่อเพื่อนที่จะคุย
+
+  var goal=0;
+
+  function switchPress(logic){
+    if(logic == 1 ){
+      microgear.chat(thing1,"ON");
+    }else if(logic == 0 ){
+      microgear.chat(thing1,"OFF");
+    }
+  }
+
+  var microgear = Microgear.create({
+    key: KEY,
+    secret: SECRET,
+    alias : ALIAS
+  });
+
+
+  microgear.on('message', function(topic,data) {
+    if(data=="ON"){
+      document.getElementById("Status").innerHTML =  "Load is ON.";
+    }else if(data=="OFF"){
+      document.getElementById("Status").innerHTML =  "Load is OFF."; 
+    }
+    else{
+      document.getElementById("dataFromNodeMCU").innerHTML = String(data);
+      if(Number(data)== Number(goal)){
+        alert("You have reached your goal!");
+        microgear.chat(thing1,"STOP");
+        goal=0;
+      }
+    }
+    console.log("goal: ",goal);
+    console.log("data: ",data);
+  });
+
+  microgear.on('connected', function() {
+    microgear.setAlias(ALIAS);
+    document.getElementById("connected_NETPIE").innerHTML = "Connected to NETPIE"
+  });
+
+  microgear.on('present', function(event) {
+    console.log(event);
+  });
+
+  microgear.on('absent', function(event) {
+    console.log(event);
+  });
+
+  microgear.resettoken(function(err) {
+    microgear.connect(APPID);
+  });
+
+  function getStart(){
+    let d = 10,op="";
+    var state = document.getElementById("choice").value;
+    goal=document.getElementById("goalSet").value;
+    if(state === "push_up"){
+      op = "Push Up Mode"
+      microgear.chat(thing1,String(goal)+"P");
+    }
+    else if(state === "sit_up"){
+      op = "Sit Up Mode";
+      microgear.chat(thing1,String(goal)+"P");
+    }
+    else if(state === "dumbbell"){
+      op = "Dumbbell Mode";
+      microgear.chat(thing1,String(goal)+"D");
+    }
+    document.getElementById("Status").innerHTML = op;
+  }
+
+</script>
+
+</head>
+<body>
+  <div class="w3-row w3-teal">
+    <div class="w3-col m1 w3-center">
+      <image src="logo\120502.png" style="width: 110px; height: 100px;"></image>
+    </div>
+    <div class="w3-col m2 w3-left" style="padding: 8px 0;">
+      <h1>Fitness Ticker</h1>
+    </div>
+  </div>
+  <div align="center">
+    
+    <form class="w3-container w3-card-4" action="/action_page.php">
+    
+      <p style="color: darkslategrey; font-size: large; font-weight: bold;",style="">Step 1 : Please select your mode</p>
+      <select class="w3-select" name="option" id="choice" style="width: 300px;">
+        <option value="push_up">Push Up</option>
+        <option value="sit_up">Sit Up</option>
+        <option value="dumbbell">Dumbbell</option>
+      </select>
+
+      <p style="color: darkslategray; font-size: large; font-weight: bold;" >Step 2 : Please set your reps goal</p>
+      <input id="goalSet" type="number" min="0" name="Goal" style="width: 300px;">
+
+      <p id = "out", style="color: darkslategray; font-size: large; font-weight: bold;">Step 3 : Get start!</p>
+         
+      <button class="w3-button w3-teal" type="button" onclick="getStart()">Start</button>
+    
+      <div class="w3-row">
+          <div class="w3-container w3-half w3-left" style="text-align: right;">
+            <h1>Reps count:</h1>
+          </div>
+          <div class="w3-container w3-half w3-right" style="text-align: left;">
+            <h1 style="font-weight: bolder;" id = dataFromNodeMCU>This is data from NodeMCU!</h1>
+          </div>
+      </div>
+
+      <h1 id="connected_NETPIE"></h1>
+      <button class="w3-button w3-teal" type="button" onclick="switchPress(1)">Turn ON</button>
+      <button class="w3-button w3-teal" type="button" onclick="switchPress(0)">Turn OFF</button>
+      <p><strong id="Status">Sound of Embeded System.</strong></p>
+    </form>
+
+    
+  </div align="center" >
+    
+</body>
+</html>
